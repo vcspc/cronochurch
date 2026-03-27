@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /schedules/{scheduleId}
+    // Fields:
+    //   - title: string (required, 1-100 chars)
+    //   - date: string (required, ISO date format)
+    //   - items: list (required, max 50 items)
+    //   - createdBy: string (required, user UID)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp (required)
+    //   - isTemplate: bool (optional)
+    //
+    // Collection: /templates/{templateId}
+    // Fields: Same as Schedule
+    //
+    // Collection: /history/{historyId}
+    // Fields:
+    //   - scheduleId: string (required)
+    //   - userId: string (required)
+    //   - userName: string (required)
+    //   - action: string (enum: create, update, delete, restore)
+    //   - details: string (optional)
+    //   - timestamp: timestamp (required)
+    //
+    // Collection: /locks/{scheduleId}
+    // Fields:
+    //   - scheduleId: string (required)
+    //   - userId: string (required)
+    //   - userName: string (required)
+    //   - expiresAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "vitonilcius@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidSchedule(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.date is string && data.items is list && data.items.size() <= 50 &&
+             data.createdBy is string && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function isValidHistory(data) {
+      return data.scheduleId is string && data.userId is string && data.userName is string &&
+             data.action in ['create', 'update', 'delete', 'restore'] &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidLock(data) {
+      return data.scheduleId is string && data.userId is string && data.userName is string &&
+             data.expiresAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /schedules/{scheduleId} {
+      // Shared schedules can be read by anyone with the link
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidSchedule(request.resource.data) && request.resource.data.createdBy == request.auth.uid;
+      // Anyone authenticated can update if they have the link (shared editing)
+      allow update: if isAuthenticated() && isValidSchedule(request.resource.data);
+      allow delete: if isAuthenticated() && (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
+
+    match /templates/{templateId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidSchedule(request.resource.data);
+      allow update: if isAuthenticated() && isValidSchedule(request.resource.data);
+      allow delete: if isAuthenticated() && (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
+
+    match /history/{historyId} {
+      allow read: if true; // History is public for shared schedules
+      allow create: if isAuthenticated() && isValidHistory(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /locks/{scheduleId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidLock(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && isValidLock(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      // Allow deletion if you are the owner or the lock has expired
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || request.time > resource.data.expiresAt || isAdmin());
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId);
+    }
+  }
+}

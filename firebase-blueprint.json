@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "ScheduleItem": {
+      "title": "Schedule Item",
+      "description": "An individual item within a service schedule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "time": { "type": "string", "description": "HH:mm format" },
+        "duration": { "type": "number", "description": "Duration in minutes" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "link": { "type": "string" }
+      },
+      "required": ["id", "time", "title"]
+    },
+    "Schedule": {
+      "title": "Schedule",
+      "description": "A complete service schedule",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "ScheduleItem" }
+        },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "isTemplate": { "type": "boolean" }
+      },
+      "required": ["title", "date", "items"]
+    },
+    "EditHistory": {
+      "title": "Edit History",
+      "description": "A record of an edit action",
+      "type": "object",
+      "properties": {
+        "scheduleId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string", "enum": ["create", "update", "delete", "restore"] },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["scheduleId", "userId", "action", "timestamp"]
+    },
+    "Lock": {
+      "title": "Edit Lock",
+      "description": "A lock to prevent concurrent editing",
+      "type": "object",
+      "properties": {
+        "scheduleId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["scheduleId", "userId", "expiresAt"]
+    }
+  },
+  "firestore": {
+    "/schedules/{scheduleId}": {
+      "schema": "Schedule",
+      "description": "Collection of service schedules"
+    },
+    "/templates/{templateId}": {
+      "schema": "Schedule",
+      "description": "Collection of reusable schedule templates"
+    },
+    "/history/{historyId}": {
+      "schema": "EditHistory",
+      "description": "Global edit history log"
+    },
+    "/locks/{scheduleId}": {
+      "schema": "Lock",
+      "description": "Active editing locks for schedules"
+    }
+  }
+}
