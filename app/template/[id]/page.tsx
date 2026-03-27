@@ -169,6 +169,14 @@ export default function TemplatePage({ params }: { params: Promise<{ id: string 
           createdBy: user.uid,
           createdAt: serverTimestamp(),
         });
+        await addDoc(collection(db, 'history'), {
+          scheduleId: docRef.id,
+          userId: user.uid,
+          userName: user.displayName || 'Usuário',
+          action: 'create',
+          details: `Criou o modelo "${title}"`,
+          timestamp: serverTimestamp(),
+        });
         toast.success('Modelo criado!');
         router.push(`/template/${docRef.id}`);
       } else {

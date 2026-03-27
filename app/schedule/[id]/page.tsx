@@ -177,6 +177,14 @@ export default function SchedulePage({ params }: { params: Promise<{ id: string 
           createdBy: user.uid,
           createdAt: serverTimestamp(),
         });
+        await addDoc(collection(db, 'history'), {
+          scheduleId: docRef.id,
+          userId: user.uid,
+          userName: user.displayName || 'Usuário',
+          action: 'create',
+          details: `Criou o ${isTemplate ? 'modelo' : 'cronograma'} "${title}"`,
+          timestamp: serverTimestamp(),
+        });
         toast.success(isTemplate ? 'Modelo criado!' : 'Cronograma criado!');
         router.push(isTemplate ? '/templates' : `/schedule/${docRef.id}`);
       } else {

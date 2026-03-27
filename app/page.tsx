@@ -5,7 +5,7 @@ import { auth, signInWithGoogle, db } from '@/lib/firebase';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Bell, Music, Users, BookOpen, Calendar as CalendarIcon, LogOut, ChevronRight, MoreVertical, Clock, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Bell, Music, Users, BookOpen, Calendar as CalendarIcon, LogOut, ChevronRight, MoreVertical, Clock, Eye, Edit, Trash2, History } from 'lucide-react';
 import { ScheduleCard } from '@/components/ScheduleCard';
 import { TemplateCard } from '@/components/TemplateCard';
 import { format } from 'date-fns';
@@ -19,6 +19,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [schedules, setSchedules] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
+  const [recentHistory, setRecentHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,9 +45,16 @@ export default function Home() {
       setTemplates(docs);
     });
 
+    const hq = query(collection(db, 'history'), orderBy('timestamp', 'desc'), limit(5));
+    const hUnsubscribe = onSnapshot(hq, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setRecentHistory(docs);
+    });
+
     return () => {
       unsubscribe();
       tUnsubscribe();
+      hUnsubscribe();
     };
   }, [user]);
 
@@ -160,6 +168,38 @@ export default function Home() {
               onSelect={handleCreateFromTemplate}
             />
           ))}
+        </div>
+      </section>
+
+      {/* Recent Activity */}
+      <section className="mb-8 px-6">
+        <div className="mb-4 flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Atividade recente</h2>
+          <Link href="/history" className="text-[#e6614c] text-sm font-medium hover:underline flex items-center gap-1">
+            Ver tudo
+            <ChevronRight size={14} />
+          </Link>
+        </div>
+        <div className="bg-white rounded-3xl p-4 shadow-sm space-y-4">
+          {recentHistory.length === 0 ? (
+            <p className="text-center text-[#9CA3AF] py-4 text-sm">Nenhuma atividade recente.</p>
+          ) : (
+            recentHistory.map((item) => (
+              <div key={item.id} className="flex items-start gap-3 border-b border-gray-50 last:border-0 pb-3 last:pb-0">
+                <div className="w-8 h-8 rounded-full bg-[#FAF6F0] flex items-center justify-center text-[#e6614c] font-bold text-xs shrink-0">
+                  {item.userName?.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-[#4A3F35] leading-tight">
+                    <span className="font-bold">{item.userName}</span> {item.details}
+                  </p>
+                  <p className="text-[10px] text-[#9CA3AF] mt-1">
+                    {item.timestamp?.toDate() && format(item.timestamp.toDate(), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
