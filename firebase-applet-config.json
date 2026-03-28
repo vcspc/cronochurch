@@ -1,7 +1,10 @@
 {
-  "apiKey": "TODO_KEYHERE",
-  "authDomain": "TODO_AUTH_DOMAIN",
-  "projectId": "TODO_PROJECT_ID",
-  "appId": "TODO_APP_ID",
-  "firestoreDatabaseId": "TODO_FIRESTORE_DATABASE_ID"
+  "projectId": "gemini-bot-wpp",
+  "appId": "1:869252994191:web:560ad4a86b6aefbedeccfa",
+  "apiKey": "AIzaSyDH4VupnuF0XpEK0uHrIPoSHGanzKfnqgc",
+  "authDomain": "gemini-bot-wpp.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-e028c5a6-e84f-4e94-8892-7378c9ca711f",
+  "storageBucket": "gemini-bot-wpp.firebasestorage.app",
+  "messagingSenderId": "869252994191",
+  "measurementId": ""
 }
