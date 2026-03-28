@@ -5,7 +5,7 @@ import { db, auth } from '@/lib/firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { motion } from 'motion/react';
-import { ArrowLeft, History as HistoryIcon, Clock, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, History as HistoryIcon, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Link from 'next/link';
@@ -82,16 +82,6 @@ export default function HistoryPage() {
                   <p className="text-sm text-[#4A3F35] leading-relaxed">
                     {item.details}
                   </p>
-                  {item.action === 'update' && (
-                    <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">
-                      Atualização
-                    </div>
-                  )}
-                  {item.action === 'create' && (
-                    <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded text-[10px] font-bold uppercase">
-                      Criação
-                    </div>
-                  )}
                 </div>
               </motion.div>
             ))

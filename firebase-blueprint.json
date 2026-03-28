@@ -1,80 +1,50 @@
 {
   "entities": {
-    "ScheduleItem": {
-      "title": "Schedule Item",
-      "description": "An individual item within a service schedule",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "time": { "type": "string", "description": "HH:mm format" },
-        "duration": { "type": "number", "description": "Duration in minutes" },
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "link": { "type": "string" }
-      },
-      "required": ["id", "time", "title"]
-    },
     "Schedule": {
       "title": "Schedule",
-      "description": "A complete service schedule",
+      "description": "A schedule for a church service.",
       "type": "object",
       "properties": {
         "title": { "type": "string" },
-        "date": { "type": "string", "format": "date" },
-        "items": {
-          "type": "array",
-          "items": { "$ref": "ScheduleItem" }
-        },
+        "date": { "type": "string" },
+        "items": { "type": "array" },
         "createdBy": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" },
-        "isTemplate": { "type": "boolean" }
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
       },
-      "required": ["title", "date", "items"]
+      "required": ["title", "date", "createdBy"]
     },
-    "EditHistory": {
-      "title": "Edit History",
-      "description": "A record of an edit action",
+    "Template": {
+      "title": "Template",
+      "description": "A template for a schedule.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "items": { "type": "array" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "createdBy"]
+    },
+    "History": {
+      "title": "History",
+      "description": "A history record of an action.",
       "type": "object",
       "properties": {
         "scheduleId": { "type": "string" },
         "userId": { "type": "string" },
         "userName": { "type": "string" },
-        "action": { "type": "string", "enum": ["create", "update", "delete", "restore"] },
+        "action": { "type": "string" },
         "details": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
+        "timestamp": { "type": "string" }
       },
-      "required": ["scheduleId", "userId", "action", "timestamp"]
-    },
-    "Lock": {
-      "title": "Edit Lock",
-      "description": "A lock to prevent concurrent editing",
-      "type": "object",
-      "properties": {
-        "scheduleId": { "type": "string" },
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "expiresAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["scheduleId", "userId", "expiresAt"]
+      "required": ["userId", "action", "timestamp"]
     }
   },
   "firestore": {
-    "/schedules/{scheduleId}": {
-      "schema": "Schedule",
-      "description": "Collection of service schedules"
-    },
-    "/templates/{templateId}": {
-      "schema": "Schedule",
-      "description": "Collection of reusable schedule templates"
-    },
-    "/history/{historyId}": {
-      "schema": "EditHistory",
-      "description": "Global edit history log"
-    },
-    "/locks/{scheduleId}": {
-      "schema": "Lock",
-      "description": "Active editing locks for schedules"
-    }
+    "schedules": { "schema": "Schedule", "description": "Collection of schedules." },
+    "templates": { "schema": "Template", "description": "Collection of templates." },
+    "history": { "schema": "History", "description": "Collection of history records." }
   }
 }
